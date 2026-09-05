@@ -1,3 +1,5 @@
+#include "WorkbenchPage.idl"
+
 namespace MagpieVideo {
 	[default_interface]
 	runtimeclass App : Windows.UI.Xaml.Application {
