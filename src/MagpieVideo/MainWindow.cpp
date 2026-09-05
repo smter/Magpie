@@ -70,7 +70,7 @@ bool MainWindow::Create() {
 	_xamlSourceNative2->AttachToWindow(Handle());
 	_xamlSourceNative2->get_WindowHandle(&_hwndXamlIsland);
 
-	_content = make_self<WorkbenchPage>();
+	_content = make_self<WorkbenchPage>().as<winrt::Windows::UI::Xaml::UIElement>();
 	_xamlSource.Content(_content);
 
 	Show();

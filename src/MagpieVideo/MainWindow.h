@@ -10,6 +10,7 @@ namespace MagpieVideo {
 class MainWindow : public ::Magpie::WindowBaseT<MainWindow> {
 public:
 	friend ::Magpie::WindowBaseT<MainWindow>;
+	using base_type = ::Magpie::WindowBaseT<MainWindow>;
 
 	MainWindow() = default;
 
