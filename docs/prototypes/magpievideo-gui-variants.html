@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MagpieVideo GUI 原型（PROTOTYPE）</title>
+<style>
+  :root {
+    --bg: #1b1b1b;
+    --card: #202020;
+    --card2: #252525;
+    --border: #3a3a3a;
+    --border2: #4a4a4a;
+    --text: #f3f3f3;
+    --text2: #a8a8a8;
+    --text3: #6d6d6d;
+    --accent: #4cc2ff;
+    --accent2: #7fd4ff;
+    --ok: #6ccb5f;
+    --warn: #ffb900;
+    --danger: #ff6b6b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", "Microsoft YaHei UI", system-ui, sans-serif;
+    font-size: 14px; color: var(--text); background: var(--bg);
+  }
+
+  /* ---------- prototype chrome (not part of the design) ---------- */
+  .proto-banner {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    background: #2b1a00; color: #ffd479; border-bottom: 1px solid #6b4a00;
+    font-size: 12px; letter-spacing: .4px; padding: 4px 12px;
+    display: flex; gap: 12px; align-items: center;
+  }
+  .proto-banner b { color: #ffb900; }
+  .proto-banner .pb-note { color: #caa66a; }
+  .proto-switcher {
+    position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
+    z-index: 1000; background: #111; border: 1px solid #555; border-radius: 999px;
+    padding: 6px 10px; display: flex; gap: 10px; align-items: center;
+    box-shadow: 0 4px 18px rgba(0,0,0,.6);
+  }
+  .proto-switcher button {
+    background: transparent; border: none; color: var(--text);
+    font-size: 18px; width: 32px; height: 32px; border-radius: 50%;
+    cursor: pointer; font-family: inherit;
+  }
+  .proto-switcher button:hover { background: #2c2c2c; }
+  .proto-switcher .ps-label { color: var(--text2); font-size: 13px; min-width: 150px; text-align: center; }
+
+  .variant { display: none; }
+  .variant[data-variant="a"] { display: block; }
+
+  /* ---------- shared WinUI-ish primitives (wireframe fidelity) ---------- */
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; margin: 0 0 16px;
+  }
+  .card-hd {
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px;
+  }
+  .card-hd .stepnum {
+    display: inline-flex; width: 22px; height: 22px; border-radius: 50%;
+    background: var(--accent); color: #06121a; font-size: 12px; font-weight: 700;
+    align-items: center; justify-content: center;
+  }
+  .card-hd .hint { margin-left: auto; font-size: 12px; color: var(--text3); font-weight: 400; }
+  .card-bd { padding: 16px; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #2d2d2d; color: var(--text); border: 1px solid var(--border2);
+    border-radius: 4px; padding: 7px 16px; font-size: 13px; cursor: pointer;
+    font-family: inherit; white-space: nowrap;
+  }
+  .btn:hover { background: #363636; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #06121a; font-weight: 600; }
+  .btn.primary:hover { background: var(--accent2); }
+  .btn.ghost { background: transparent; border-color: transparent; color: var(--text2); }
+  .btn.ghost:hover { background: #2d2d2d; color: var(--text); }
+  .btn:disabled, .btn.disabled { opacity: .45; cursor: default; }
+
+  .dropzone {
+    border: 1.5px dashed var(--border2); border-radius: 8px;
+    padding: 34px 20px; text-align: center; color: var(--text2);
+    background: var(--card2);
+  }
+  .dropzone .dz-icon { font-size: 30px; color: var(--text3); margin-bottom: 8px; }
+  .dropzone .dz-title { font-size: 14px; color: var(--text); margin-bottom: 4px; }
+  .dropzone .dz-sub { font-size: 12px; color: var(--text3); }
+
+  .filecard { display: flex; align-items: center; gap: 14px; padding: 12px 16px; }
+  .filecard .fc-thumb {
+    width: 72px; height: 44px; background: #0d0d0d; border: 1px solid var(--border);
+    border-radius: 4px; display: flex; align-items: center; justify-content: center;
+    color: var(--text3); font-size: 18px; flex: none;
+  }
+  .filecard .fc-name { font-size: 14px; font-weight: 600; }
+  .filecard .fc-meta { font-size: 12px; color: var(--text3); margin-top: 3px; display: flex; gap: 10px; }
+  .filecard .fc-meta span { background: var(--card2); border: 1px solid var(--border); border-radius: 3px; padding: 1px 6px; }
+  .filecard .fc-actions { margin-left: auto; display: flex; gap: 6px; }
+
+  .form-row {
+    display: grid; grid-template-columns: 190px 1fr; gap: 10px;
+    align-items: center; padding: 9px 0; border-bottom: 1px solid #2a2a2a;
+  }
+  .form-row:last-child { border-bottom: none; }
+  .form-row .fr-label { font-size: 13px; color: var(--text); }
+  .form-row .fr-label .fr-sub { display: block; font-size: 11px; color: var(--text3); }
+  .form-row .fr-ctl { display: flex; align-items: center; gap: 10px; }
+
+  .select {
+    background: var(--card2); color: var(--text); border: 1px solid var(--border2);
+    border-radius: 4px; padding: 5px 26px 5px 10px; font-size: 13px;
+    font-family: inherit; cursor: pointer; position: relative; min-width: 160px;
+    background-image: linear-gradient(45deg, transparent 50%, var(--text2) 50%),
+      linear-gradient(135deg, var(--text2) 50%, transparent 50%);
+    background-position: calc(100% - 14px) 50%, calc(100% - 10px) 50%;
+    background-size: 4px 4px; background-repeat: no-repeat;
+  }
+  .select.small { min-width: 120px; }
+
+  .slider-wrap { display: flex; align-items: center; gap: 8px; flex: 1; max-width: 260px; }
+  .slider {
+    flex: 1; height: 4px; background: #4a4a4a; border-radius: 2px; position: relative;
+  }
+  .slider .sl-fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); border-radius: 2px; }
+  .slider .sl-thumb {
+    position: absolute; top: 50%; width: 16px; height: 16px; border-radius: 50%;
+    background: var(--text); transform: translate(-50%, -50%);
+    box-shadow: 0 1px 3px rgba(0,0,0,.5);
+  }
+  .slider-val { font-size: 12px; color: var(--text2); min-width: 34px; text-align: right; font-variant-numeric: tabular-nums; }
+
+  .checkbox { display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
+  .checkbox .cb {
+    width: 18px; height: 18px; border: 1.5px solid var(--text2); border-radius: 3px;
+    display: inline-flex; align-items: center; justify-content: center; font-size: 13px;
+    color: #06121a; flex: none;
+  }
+  .checkbox.on .cb { background: var(--accent); border-color: var(--accent); }
+
+  .pathbox {
+    flex: 1; background: var(--card2); border: 1px solid var(--border2); border-radius: 4px;
+    padding: 6px 10px; font-size: 12.5px; color: var(--text2);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: Consolas, monospace;
+  }
+
+  .actionbar {
+    position: sticky; bottom: 0; background: var(--card);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px 16px; display: flex; align-items: center; gap: 14px;
+    margin-top: 4px;
+  }
+  .actionbar .ab-progress { flex: 1; }
+  .actionbar .ab-status { font-size: 12px; color: var(--text2); }
+  .ab-bar { height: 6px; background: #3a3a3a; border-radius: 3px; overflow: hidden; margin-top: 6px; }
+  .ab-bar .ab-fill { height: 100%; background: var(--accent); border-radius: 3px; width: 42%; }
+  .ab-bar.done .ab-fill { background: var(--ok); width: 100%; }
+
+  .tag { font-size: 11px; padding: 2px 8px; border-radius: 10px; border: 1px solid var(--border2); color: var(--text2); }
+  .tag.blue { border-color: #1f6d9e; color: var(--accent); }
+  .tag.grey { background: #2a2a2a; color: var(--text3); }
+  .tag.ok { border-color: #2e6b2a; color: var(--ok); }
+  .tag.warn { border-color: #7a5c00; color: var(--warn); }
+
+  .note { font-size: 12px; color: var(--text3); }
+  .note b { color: var(--text2); font-weight: 600; }
+  .link { color: var(--accent); cursor: pointer; font-size: 12.5px; }
+  .link:hover { text-decoration: underline; }
+
+  .page-title { font-size: 26px; font-weight: 600; margin: 6px 0 14px; }
+  .page-sub { font-size: 12.5px; color: var(--text3); margin-top: -8px; margin-bottom: 16px; }
+
+  .footer { text-align: center; font-size: 11.5px; color: var(--text3); padding: 10px 0 90px; }
+
+  /* split compare */
+  .split {
+    position: relative; border: 1px solid var(--border2); border-radius: 6px;
+    overflow: hidden; height: 150px; background: #0d0d0d; user-select: none;
+  }
+  .split .sp-base, .split .sp-top { position: absolute; inset: 0; }
+  .split .sp-base { background: linear-gradient(135deg, #1a3a24, #0d0d0d 60%, #16283a); }
+  .split .sp-top { clip-path: inset(0 calc(100% - var(--pos, 50%)) 0 0); background: linear-gradient(135deg, #3a2a1a, #10151d 55%, #1a1a10); }
+  .split .sp-label { position: absolute; top: 8px; font-size: 11px; padding: 2px 8px; border-radius: 3px; background: rgba(0,0,0,.65); color: #ddd; }
+  .split .sp-label.l { left: 8px; }
+  .split .sp-label.r { right: 8px; }
+  .split .sp-divider {
+    position: absolute; top: 0; bottom: 0; left: var(--pos, 50%); width: 2px;
+    background: var(--text); cursor: ew-resize; z-index: 2;
+  }
+  .split .sp-divider::after {
+    content: "⇔"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: var(--text); color: #111; border-radius: 50%; width: 20px; height: 20px;
+    font-size: 12px; display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ================= Variant A: single-page workbench ================= */
+  .va-shell { max-width: 860px; margin: 0 auto; padding: 56px 24px 120px; }
+  .va-topbar { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+  .va-chosen {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600;
+    color: #06121a; background: var(--ok); border-radius: 4px; padding: 3px 10px;
+  }
+  .card-hd .chev { margin-left: auto; font-size: 12px; color: var(--text3); transition: transform .15s; }
+  .card.collapsed .chev { transform: rotate(-90deg); }
+  .card.collapsed .card-bd { display: none; }
+  .card.collapsed { margin-bottom: 12px; }
+  .va-logo {
+    width: 30px; height: 30px; border-radius: 6px; background: var(--accent);
+    color: #06121a; font-weight: 800; font-size: 15px; display: flex;
+    align-items: center; justify-content: center;
+  }
+  .va-appname { font-size: 17px; font-weight: 600; }
+  .va-topbar .va-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+
+  .param-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 28px; }
+  .param-grid .form-row { grid-template-columns: 150px 1fr; }
+
+  /* ================= Variant B: wizard ================= */
+  .vb-shell { display: flex; min-height: 100vh; }
+  .vb-rail {
+    width: 250px; flex: none; background: var(--card); border-right: 1px solid var(--border);
+    padding: 24px 18px; display: flex; flex-direction: column; gap: 4px;
+  }
+  .vb-rail .vb-brand { display: flex; align-items: center; gap: 8px; margin-bottom: 22px; }
+  .vb-step {
+    display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 6px;
+    color: var(--text3); font-size: 13.5px;
+  }
+  .vb-step .vs-num {
+    width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--text3);
+    display: flex; align-items: center; justify-content: center; font-size: 12px; flex: none;
+  }
+  .vb-step.active { background: #16293a; color: var(--text); }
+  .vb-step.active .vs-num { background: var(--accent); border-color: var(--accent); color: #06121a; font-weight: 700; }
+  .vb-step.done { color: var(--text2); }
+  .vb-step.done .vs-num { border-color: var(--ok); color: var(--ok); }
+  .vb-main { flex: 1; padding: 40px 44px 40px; max-width: 900px; }
+  .vb-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 26px; }
+  .vb-nav .vn-right { display: flex; gap: 10px; }
+
+  .section-title { font-size: 15px; font-weight: 600; margin: 18px 0 8px; display: flex; align-items: center; gap: 8px; }
+  .section-title .st-sub { font-size: 11.5px; color: var(--text3); font-weight: 400; }
+
+  .logbox {
+    background: #121212; border: 1px solid var(--border); border-radius: 6px;
+    padding: 10px 12px; font-family: Consolas, monospace; font-size: 11.5px;
+    color: var(--text2); line-height: 1.7; max-height: 130px; overflow: hidden;
+  }
+  .logbox .dim { color: var(--text3); }
+
+  .done-box { text-align: center; padding: 30px 20px; }
+  .done-box .db-icon { font-size: 40px; color: var(--ok); margin-bottom: 10px; }
+  .done-box .db-title { font-size: 19px; font-weight: 600; margin-bottom: 6px; }
+  .done-box .db-sub { font-size: 13px; color: var(--text2); margin-bottom: 6px; }
+  .done-box .db-path {
+    display: inline-block; font-family: Consolas, monospace; font-size: 12px;
+    background: var(--card2); border: 1px solid var(--border); border-radius: 4px;
+    padding: 5px 10px; color: var(--accent); margin: 8px 0 16px;
+  }
+
+  /* ================= Variant C: NavigationView shell ================= */
+  .vc-shell { display: flex; min-height: 100vh; }
+  .vc-nav {
+    width: 232px; flex: none; background: var(--card); border-right: 1px solid var(--border);
+    padding-top: 16px;
+  }
+  .vc-nav .vc-brand { display: flex; align-items: center; gap: 8px; padding: 4px 18px 18px; }
+  .vc-item {
+    display: flex; align-items: center; gap: 12px; padding: 10px 18px;
+    color: var(--text2); font-size: 13.5px; cursor: pointer;
+    border-left: 3px solid transparent;
+  }
+  .vc-item:hover { background: #262626; color: var(--text); }
+  .vc-item.active { background: #16293a; color: var(--text); border-left-color: var(--accent); }
+  .vc-item .vi-ico { width: 18px; text-align: center; color: var(--text3); }
+  .vc-item.active .vi-ico { color: var(--accent); }
+  .vc-main { flex: 1; padding: 0 40px; max-width: 980px; }
+  .vc-page { padding: 34px 0 30px; }
+
+  .pane-hd { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .pane-hd .ph-title { font-size: 26px; font-weight: 600; }
+  .pane-hd .ph-action { margin-left: auto; }
+
+  .mode-card {
+    display: flex; align-items: center; gap: 14px; background: var(--card2);
+    border: 1px solid var(--accent); border-radius: 8px; padding: 14px 16px; cursor: pointer;
+  }
+  .mode-card .mc-ico {
+    width: 40px; height: 40px; border-radius: 8px; background: #0f2a3a;
+    border: 1px solid #1f6d9e; display: flex; align-items: center; justify-content: center;
+    font-size: 19px; color: var(--accent); flex: none;
+  }
+  .mode-card .mc-name { font-size: 15px; font-weight: 600; }
+  .mode-card .mc-desc { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .mode-card .mc-tags { display: flex; gap: 6px; margin-left: auto; }
+
+  .mode-stub {
+    display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+    border: 1px dashed var(--border2); border-radius: 8px; color: var(--text3);
+    font-size: 13px; margin-top: 10px;
+  }
+  .mode-stub .ms-ico { font-size: 17px; }
+
+  .flyout {
+    background: var(--card); border: 1px solid var(--border2); border-radius: 8px;
+    box-shadow: 0 8px 28px rgba(0,0,0,.55); padding: 14px 16px; margin: 10px 0 0;
+  }
+  .flyout .fo-hd { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+
+  .recent-row {
+    display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+    border-bottom: 1px solid #2a2a2a; font-size: 13px;
+  }
+  .recent-row:last-child { border-bottom: none; }
+  .recent-row .rr-name { font-weight: 500; }
+  .recent-row .rr-meta { color: var(--text3); font-size: 12px; }
+  .recent-row .rr-status { margin-left: auto; }
+
+  .inline-progress { display: flex; align-items: center; gap: 12px; margin: 14px 0 4px; }
+  .inline-progress .ip-bar { flex: 1; height: 6px; background: #3a3a3a; border-radius: 3px; overflow: hidden; }
+  .inline-progress .ip-fill { height: 100%; width: 68%; background: var(--accent); border-radius: 3px; }
+  .inline-progress .ip-text { font-size: 12px; color: var(--text2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+  .kv { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid #2a2a2a; font-size: 13px; }
+  .kv:last-child { border-bottom: none; }
+  .kv .kv-k { color: var(--text2); width: 190px; flex: none; }
+  .kv .kv-v { color: var(--text); }
+</style>
+</head>
+<body>
+
+<div class="proto-banner">
+  <b>PROTOTYPE（草稿，仅供讨论）</b>
+  <span class="pb-note">MagpieVideo GUI · 三个结构不同的变体 · 非产品代码 · 处理管线与参数以 #6/#9/#10 调研为准</span>
+</div>
+
+<!-- ================================================================
+     VARIANT A — 单页工作台：一页看完，导入 → 参数 → 输出 → 开始
+     ================================================================ -->
+<section class="variant" data-variant="a" data-name="单页工作台">
+  <div class="va-shell">
+    <div class="va-topbar">
+      <div class="va-logo">MV</div>
+      <div class="va-appname">MagpieVideo</div>
+      <span class="va-chosen">✓ 选定方案</span>
+      <span class="tag blue">DLSSNR · 同分辨率 AI 降噪</span>
+      <div class="va-actions">
+        <span class="link">设置</span>
+      </div>
+    </div>
+
+    <!-- 1. 选视频 -->
+    <div class="card">
+      <div class="card-hd"><span class="stepnum">1</span> 选择视频 <span class="hint">单个文件 · 一次一个</span></div>
+      <div class="card-bd">
+        <div class="dropzone">
+          <div class="dz-icon">🎞️</div>
+          <div class="dz-title">将视频文件拖到这里，或</div>
+          <div class="dz-sub" style="margin-top:8px">
+            <button class="btn primary">📂 选择视频文件…</button>
+          </div>
+          <div class="dz-sub" style="margin-top:8px">支持 H.264 / HEVC 等常见编码（FFmpeg 解码）· 音频原样直通</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. DLSSNR 参数 -->
+    <div class="card">
+      <div class="card-hd"><span class="stepnum">2</span> DLSSNR 处理参数
+        <span class="tag blue" style="margin-left:6px">RTX 40/50</span>
+        <span class="hint">v1 唯一模式，参数面板与 Magpie 一致</span>
+      </div>
+      <div class="card-bd">
+        <div class="param-grid">
+          <div class="form-row">
+            <div class="fr-label">NR 预设<span class="fr-sub">Preset #0–3</span></div>
+            <div class="fr-ctl"><div class="select small">默认 (0)</div></div>
+          </div>
+          <div class="form-row">
+            <div class="fr-label">NR 风格<span class="fr-sub">默认 / 自然 / 电影感</span></div>
+            <div class="fr-ctl"><div class="select small">默认 (0)</div></div>
+          </div>
+          <div class="form-row">
+            <div class="fr-label">强度<span class="fr-sub">整体处理强度</span></div>
+            <div class="fr-ctl"><div class="slider-wrap"><div class="slider"><div class="sl-fill" style="width:50%"></div><div class="sl-thumb" style="left:50%"></div></div><span class="slider-val">1.0</span></div></div>
+          </div>
+          <div class="form-row">
+            <div class="fr-label">局部色调强度</div>
+            <div class="fr-ctl"><div class="slider-wrap"><div class="slider"><div class="sl-fill" style="width:50%"></div><div class="sl-thumb" style="left:50%"></div></div><span class="slider-val">1.0</span></div></div>
+          </div>
+          <div class="form-row">
+            <div class="fr-label">局部结构强度</div>
+            <div class="fr-ctl"><div class="slider-wrap"><div class="slider"><div class="sl-fill" style="width:50%"></div><div class="sl-thumb" style="left:50%"></div></div><span class="slider-val">1.0</span></div></div>
+          </div>
+          <div class="form-row">
+            <div class="fr-label">皮肤结构强度<span class="fr-sub">-1 保持默认行为</span></div>
+            <div class="fr-ctl"><div class="slider-wrap"><div class="slider"><div class="sl-fill" style="width:33%"></div><div class="sl-thumb" style="left:33%"></div></div><span class="slider-val">-1</span></div></div>
+          </div>
+          <div class="form-row">
+            <div class="fr-label">自动遮罩</div>
+            <div class="fr-ctl"><label class="checkbox"><span class="cb"></span> 关闭</label></div>
+          </div>
+          <div class="form-row">
+            <div class="fr-label">UI 修正</div>
+            <div class="fr-ctl"><label class="checkbox"><span class="cb"></span> 关闭</label></div>
+          </div>
+          <div class="form-row">
+            <div class="fr-label">帧引导 (Frame Guidance)<span class="fr-sub">NVOF 光流 + 深度估计</span></div>
+            <div class="fr-ctl"><div class="select small">可用 (0)</div></div>
+          </div>
+          <div class="form-row">
+            <div class="fr-label">深度推断间隔<span class="fr-sub">Depth Anything V2</span></div>
+            <div class="fr-ctl"><div class="slider-wrap"><div class="slider"><div class="sl-fill" style="width:43%"></div><div class="sl-thumb" style="left:43%"></div></div><span class="slider-val">4</span></div></div>
+          </div>
+        </div>
+        <div class="note" style="margin-top:12px"><b>v1 固定：</b>同分辨率输出（关闭输入分辨率缩放）；实时模式（Force Zero / Motion Only / Depth Only）保留为参数项可选。</div>
+      </div>
+    </div>
+
+    <!-- 单帧对比（自向导 B 并入：参数区内的处理前/后单帧对比） -->
+    <div class="card">
+      <div class="card-hd"><span class="stepnum">≋</span> 单帧对比
+        <span class="tag blue" style="margin-left:6px">v1</span>
+        <span class="hint">处理前 / 后单帧 · 拖动分隔线</span>
+      </div>
+      <div class="card-bd">
+        <div class="split">
+          <div class="sp-base"></div>
+          <div class="sp-top"></div>
+          <span class="sp-label l">原片</span>
+          <span class="sp-label r">DLSSNR 处理后</span>
+          <div class="sp-divider"></div>
+        </div>
+        <div class="note" style="margin-top:8px">选定帧（拖动时间线取帧或首帧）跑一次 DLSSNR 预览，左右对比；不提供整段实时预览。</div>
+      </div>
+    </div>
+
+    <!-- 3. 输出 -->
+    <div class="card collapsed" id="output-card">
+      <div class="card-hd"><span class="stepnum">3</span> 输出设置
+        <span class="chev">▾</span>
+        <span class="hint">默认折叠 · 点击展开</span>
+      </div>
+      <div class="card-bd">
+        <div class="form-row">
+          <div class="fr-label">编码器<span class="fr-sub">NVENC 硬件加速</span></div>
+          <div class="fr-ctl">
+            <div class="select">H.264 (NVENC) <span style="color:var(--text3)">· 默认</span></div>
+            <div class="select small">HEVC (NVENC)</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="fr-label">质量<span class="fr-sub">编码质量 / 码率</span></div>
+          <div class="fr-ctl">
+            <div class="select small">目标质量 (CQP)</div>
+            <div class="slider-wrap"><div class="slider"><div class="sl-fill" style="width:60%"></div><div class="sl-thumb" style="left:60%"></div></div><span class="slider-val">中</span></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="fr-label">音频<span class="fr-sub">不重编码</span></div>
+          <div class="fr-ctl"><label class="checkbox on"><span class="cb">✓</span> 原样直通 (copy)</label></div>
+        </div>
+        <div class="form-row">
+          <div class="fr-label">输出路径</div>
+          <div class="fr-ctl" style="width:100%">
+            <div class="pathbox">C:\Videos\out\myvideo_dlssnr.mp4</div>
+            <button class="btn">浏览…</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 开始/进度 -->
+    <div class="actionbar">
+      <button class="btn primary" style="padding:9px 26px">▶ 开始处理</button>
+      <div class="ab-progress">
+        <div class="ab-status">正在处理… 帧 12,400 / 29,876 · 剩余约 3:20 · 12.4×</div>
+        <div class="ab-bar"><div class="ab-fill"></div></div>
+      </div>
+      <button class="btn">取消</button>
+    </div>
+
+    <div class="footer">MagpieVideo · GPLv3 · DLSSNR 运行时为第三方组件（NGX），按发布包披露 · 配置：%LOCALAPPDATA%\MagpieVideo\config\v1</div>
+  </div>
+</section>
+
+<!-- ================================================================
+     VARIANT B — 四步向导：选择 → 参数(带对比) → 输出 → 处理/完成
+     向导一次只显示当前步骤；此处 1→4 顺序平铺，便于评审整条流程
+     ================================================================ -->
+<section class="variant" data-variant="b" data-name="四步向导">
+  <div class="vb-shell">
+    <div class="vb-rail">
+      <div class="vb-brand">
+        <div class="va-logo">MV</div>
+        <div style="font-size:15px;font-weight:600">MagpieVideo</div>
+      </div>
+      <div class="vb-step done"><span class="vs-num">✓</span> 选择视频</div>
+      <div class="vb-step active"><span class="vs-num">2</span> 处理参数 <span class="tag blue" style="margin-left:auto">DLSSNR</span></div>
+      <div class="vb-step"><span class="vs-num">3</span> 输出设置</div>
+      <div class="vb-step"><span class="vs-num">4</span> 处理并完成</div>
+      <div style="margin-top:auto;font-size:11.5px;color:var(--text3);line-height:1.6">
+        离线批量处理 · 一次一个文件<br>无实时缩放、无窗口捕获
+      </div>
+    </div>
+
+    <div class="vb-main">
+      <div class="page-title">选择要处理的视频</div>
+      <div class="page-sub">MagpieVideo 将复用 Magpie 的 DLSSNR（NVOF 光流 + Depth Anything V2 帧引导）做同分辨率 SDR 降噪。</div>
+
+      <div class="card">
+        <div class="card-bd">
+          <div class="dropzone">
+            <div class="dz-icon">🎞️</div>
+            <div class="dz-title">将视频拖到这里，或</div>
+            <div class="dz-sub" style="margin-top:8px"><button class="btn primary">📂 选择视频文件…</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="filecard" style="background:var(--card);border:1px solid var(--border);border-radius:8px">
+        <div class="fc-thumb">▶</div>
+        <div>
+          <div class="fc-name">movie_4k_demo.mkv</div>
+          <div class="fc-meta"><span>3840×2160</span><span>01:23:45</span><span>H.265</span><span>音轨 2</span></div>
+        </div>
+        <div class="fc-actions"><button class="btn">更换</button></div>
+      </div>
+
+      <div class="vb-nav">
+        <div></div>
+        <div class="vn-right">
+          <button class="btn" disabled>← 上一步</button>
+          <button class="btn primary">下一步：处理参数 →</button>
+        </div>
+      </div>
+
+      <div class="section-title">步骤 2 · 处理参数<span class="st-sub">DLSSNR（v1 唯一模式，无模式列表）</span></div>
+      <div class="card">
+        <div class="card-bd">
+          <div class="param-grid">
+            <div class="form-row"><div class="fr-label">NR 预设</div><div class="fr-ctl"><div class="select small">默认 (0)</div></div></div>
+            <div class="form-row"><div class="fr-label">NR 风格</div><div class="fr-ctl"><div class="select small">默认 (0)</div></div></div>
+            <div class="form-row"><div class="fr-label">强度</div><div class="fr-ctl"><div class="slider-wrap"><div class="slider"><div class="sl-fill" style="width:50%"></div><div class="sl-thumb" style="left:50%"></div></div><span class="slider-val">1.0</span></div></div></div>
+            <div class="form-row"><div class="fr-label">局部色调强度</div><div class="fr-ctl"><div class="slider-wrap"><div class="slider"><div class="sl-fill" style="width:50%"></div><div class="sl-thumb" style="left:50%"></div></div><span class="slider-val">1.0</span></div></div></div>
+            <div class="form-row"><div class="fr-label">局部结构强度</div><div class="fr-ctl"><div class="slider-wrap"><div class="slider"><div class="sl-fill" style="width:50%"></div><div class="sl-thumb" style="left:50%"></div></div><span class="slider-val">1.0</span></div></div></div>
+            <div class="form-row"><div class="fr-label">皮肤结构强度</div><div class="fr-ctl"><div class="slider-wrap"><div class="slider"><div class="sl-fill" style="width:33%"></div><div class="sl-thumb" style="left:33%"></div></div><span class="slider-val">-1</span></div></div></div>
+            <div class="form-row"><div class="fr-label">自动遮罩</div><div class="fr-ctl"><label class="checkbox"><span class="cb"></span> 关闭</label></div></div>
+            <div class="form-row"><div class="fr-label">UI 修正</div><div class="fr-ctl"><label class="checkbox"><span class="cb"></span> 关闭</label></div></div>
+            <div class="form-row"><div class="fr-label">帧引导 (Frame Guidance)</div><div class="fr-ctl"><div class="select small">可用 (0)</div></div></div>
+            <div class="form-row"><div class="fr-label">深度推断间隔</div><div class="fr-ctl"><div class="slider-wrap"><div class="slider"><div class="sl-fill" style="width:43%"></div><div class="sl-thumb" style="left:43%"></div></div><span class="slider-val">4</span></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">处理前 / 后对比<span class="st-sub">内嵌在参数步骤中 · 拖动分隔线（示意帧）</span></div>
+      <div class="card"><div class="card-bd">
+        <div class="split">
+          <div class="sp-base"></div>
+          <div class="sp-top"></div>
+          <span class="sp-label l">原片</span>
+          <span class="sp-label r">DLSSNR 处理后</span>
+          <div class="sp-divider"></div>
+        </div>
+        <div class="note" style="margin-top:8px">示意：离线处理需先跑一段预览帧，或处理完成后回看。成本与取舍见讨论。</div>
+      </div></div>
+
+      <div class="section-title">步骤 3 · 输出设置</div>
+      <div class="card">
+        <div class="card-bd">
+          <div class="form-row"><div class="fr-label">编码器</div><div class="fr-ctl"><div class="select small">H.264 (NVENC)</div><div class="select small">HEVC (NVENC)</div></div></div>
+          <div class="form-row"><div class="fr-label">质量</div><div class="fr-ctl"><div class="select small">目标质量 (CQP)</div><div class="slider-wrap"><div class="slider"><div class="sl-fill" style="width:60%"></div><div class="sl-thumb" style="left:60%"></div></div><span class="slider-val">中</span></div></div></div>
+          <div class="form-row"><div class="fr-label">音频</div><div class="fr-ctl"><label class="checkbox on"><span class="cb">✓</span> 原样直通 (copy)</label></div></div>
+          <div class="form-row"><div class="fr-label">输出路径</div><div class="fr-ctl" style="width:100%"><div class="pathbox">C:\Videos\out\myvideo_dlssnr.mp4</div><button class="btn">浏览…</button></div></div>
+        </div>
+      </div>
+      <div class="vb-nav"><div></div><div class="vn-right"><button class="btn">← 上一步</button><button class="btn primary">开始处理</button></div></div>
+
+      <div class="section-title">步骤 4 · 处理并完成</div>
+      <div class="card">
+        <div class="card-bd">
+          <div class="ab-status" style="margin-bottom:8px">正在处理… 帧 12,400 / 29,876 · 剩余约 3:20 · 12.4×</div>
+          <div class="ab-bar"><div class="ab-fill" style="width:42%"></div></div>
+          <div class="logbox" style="margin-top:12px">
+            <div class="dim">[14:02:11] 打开解码器 ffmpeg(D3D11VA) · 3840×2160 23.976fps</div>
+            <div class="dim">[14:02:12] 初始化 DLSSNR filter (nvngx_dlssnr) · RTX 4090</div>
+            <div class="dim">[14:02:14] NVOF 光流就绪 · Depth Anything V2 (TensorRT) 就绪</div>
+            <div>[14:03:31] 已处理 12,400/29,876 帧 (42%) · 输出写入 temp.mkv</div>
+            <div class="dim">[14:03:32] 取消可中断，已完成部分已保存…</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="done-box">
+          <div class="db-icon">✓</div>
+          <div class="db-title">处理完成</div>
+          <div class="db-sub">29,876 帧 · 耗时 12:41 · 输出同分辨率同帧率</div>
+          <div class="db-path">C:\Videos\out\myvideo_dlssnr.mp4</div>
+          <div style="display:flex;gap:10px;justify-content:center">
+            <button class="btn primary">📂 打开输出文件夹</button>
+            <button class="btn">对比 前/后</button>
+            <button class="btn">开始新任务</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">MagpieVideo · GPLv3 · DLSSNR 运行时为第三方组件（NGX）· 配置：%LOCALAPPDATA%\MagpieVideo\config\v1</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     VARIANT C — 导航壳（Magpie 风）：主页 / 处理参数 / 输出设置 / 设置 / 关于
+     ================================================================ -->
+<section class="variant" data-variant="c" data-name="导航壳">
+  <div class="vc-shell">
+    <div class="vc-nav">
+      <div class="vc-brand">
+        <div class="va-logo">MV</div>
+        <div style="font-size:15px;font-weight:600">MagpieVideo</div>
+      </div>
+      <div class="vc-item active"><span class="vi-ico">🏠</span> 主页</div>
+      <div class="vc-item"><span class="vi-ico">🎛</span> 处理参数</div>
+      <div class="vc-item"><span class="vi-ico">📤</span> 输出设置</div>
+      <div class="vc-item"><span class="vi-ico">⚙</span> 设置</div>
+      <div class="vc-item"><span class="vi-ico">ℹ</span> 关于</div>
+    </div>
+
+    <div class="vc-main">
+      <div class="vc-page">
+        <div class="pane-hd">
+          <div class="ph-title">主页</div>
+          <div class="ph-action"><button class="btn primary">▶ 开始处理</button></div>
+        </div>
+
+        <div class="inline-progress">
+          <div class="ip-bar"><div class="ip-fill"></div></div>
+          <div class="ip-text">帧 20,300 / 29,876 · 剩余 1:20 · 12.4×</div>
+          <button class="btn" style="padding:4px 12px">暂停</button>
+          <button class="btn" style="padding:4px 12px">取消</button>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <div class="card-hd">选择视频 <span class="hint">拖入或浏览</span></div>
+          <div class="card-bd">
+            <div class="dropzone" style="padding:22px">
+              <div class="dz-icon">🎞️</div>
+              <div class="dz-title" style="font-size:13px">将视频拖到这里，或 <button class="btn primary" style="padding:4px 14px">选择视频文件…</button></div>
+            </div>
+            <div class="filecard" style="padding:12px 4px 0">
+              <div class="fc-thumb">▶</div>
+              <div>
+                <div class="fc-name">movie_4k_demo.mkv</div>
+                <div class="fc-meta"><span>3840×2160</span><span>01:23:45</span><span>H.265</span></div>
+              </div>
+              <div class="fc-actions"><button class="btn">更换</button></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">最近处理 <span class="hint">本机记录</span></div>
+          <div class="card-bd" style="padding:6px 16px">
+            <div class="recent-row">
+              <span class="rr-name">movie_4k_demo.mkv</span>
+              <span class="rr-meta">今天 14:02 · 3840×2160 · H.264</span>
+              <span class="rr-status tag ok">完成</span>
+              <span class="link" style="margin-left:12px">打开输出</span>
+            </div>
+            <div class="recent-row">
+              <span class="rr-name">anime_ep01.mkv</span>
+              <span class="rr-meta">昨天 21:47 · 1920×1080 · HEVC</span>
+              <span class="rr-status tag ok">完成</span>
+              <span class="link" style="margin-left:12px">打开输出</span>
+            </div>
+            <div class="recent-row">
+              <span class="rr-name">concert_rec.mkv</span>
+              <span class="rr-meta">昨天 18:10 · 3840×2160 · H.264</span>
+              <span class="rr-status tag warn">失败</span>
+              <span class="link" style="margin-left:12px">查看日志</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vc-page">
+        <div class="pane-hd"><div class="ph-title">处理参数</div></div>
+        <div class="page-sub">模式列表在 v1 只含 DLSSNR：保留列表形态、单卡片可点，参数在通用面板中编辑（复用 Magpie 的 EffectParametersFlyout）。</div>
+
+        <div class="mode-card">
+          <div class="mc-ico">✦</div>
+          <div>
+            <div class="mc-name">DLSSNR</div>
+            <div class="mc-desc">同分辨率 AI 降噪 · SDR only · 帧引导：NVOF 光流 + Depth Anything V2</div>
+          </div>
+          <div class="mc-tags"><span class="tag blue">唯一模式 (v1)</span><span class="tag grey">RTX 40/50</span></div>
+        </div>
+
+        <div class="flyout">
+          <div class="fo-hd">DLSSNR 参数 <span style="margin-left:auto;font-size:12px;color:var(--text3)">通用参数面板（与 Magpie 一致）</span></div>
+          <div class="param-grid">
+            <div class="form-row"><div class="fr-label">NR 预设</div><div class="fr-ctl"><div class="select small">默认 (0)</div></div></div>
+            <div class="form-row"><div class="fr-label">NR 风格</div><div class="fr-ctl"><div class="select small">默认 (0)</div></div></div>
+            <div class="form-row"><div class="fr-label">强度</div><div class="fr-ctl"><div class="slider-wrap"><div class="slider"><div class="sl-fill" style="width:50%"></div><div class="sl-thumb" style="left:50%"></div></div><span class="slider-val">1.0</span></div></div></div>
+            <div class="form-row"><div class="fr-label">局部色调强度</div><div class="fr-ctl"><div class="slider-wrap"><div class="slider"><div class="sl-fill" style="width:50%"></div><div class="sl-thumb" style="left:50%"></div></div><span class="slider-val">1.0</span></div></div></div>
+            <div class="form-row"><div class="fr-label">局部结构强度</div><div class="fr-ctl"><div class="slider-wrap"><div class="slider"><div class="sl-fill" style="width:50%"></div><div class="sl-thumb" style="left:50%"></div></div><span class="slider-val">1.0</span></div></div></div>
+            <div class="form-row"><div class="fr-label">皮肤结构强度</div><div class="fr-ctl"><div class="slider-wrap"><div class="slider"><div class="sl-fill" style="width:33%"></div><div class="sl-thumb" style="left:33%"></div></div><span class="slider-val">-1</span></div></div></div>
+            <div class="form-row"><div class="fr-label">自动遮罩</div><div class="fr-ctl"><label class="checkbox"><span class="cb"></span> 关闭</label></div></div>
+            <div class="form-row"><div class="fr-label">UI 修正</div><div class="fr-ctl"><label class="checkbox"><span class="cb"></span> 关闭</label></div></div>
+            <div class="form-row"><div class="fr-label">帧引导</div><div class="fr-ctl"><div class="select small">可用 (0)</div></div></div>
+            <div class="form-row"><div class="fr-label">深度推断间隔</div><div class="fr-ctl"><div class="slider-wrap"><div class="slider"><div class="sl-fill" style="width:43%"></div><div class="sl-thumb" style="left:43%"></div></div><span class="slider-val">4</span></div></div></div>
+          </div>
+        </div>
+
+        <div class="mode-stub"><span class="ms-ico">＋</span> 添加模式（v2 预留接口位，v1 禁用）</div>
+      </div>
+
+      <div class="vc-page">
+        <div class="pane-hd"><div class="ph-title">输出设置</div></div>
+        <div class="card" style="margin-top:14px">
+          <div class="card-bd">
+            <div class="form-row"><div class="fr-label">编码器</div><div class="fr-ctl"><div class="select small">H.264 (NVENC)</div><div class="select small">HEVC (NVENC)</div></div></div>
+            <div class="form-row"><div class="fr-label">质量</div><div class="fr-ctl"><div class="select small">目标质量 (CQP)</div><div class="slider-wrap"><div class="slider"><div class="sl-fill" style="width:60%"></div><div class="sl-thumb" style="left:60%"></div></div><span class="slider-val">中</span></div></div></div>
+            <div class="form-row"><div class="fr-label">音频</div><div class="fr-ctl"><label class="checkbox on"><span class="cb">✓</span> 原样直通 (copy)</label></div></div>
+            <div class="form-row"><div class="fr-label">默认输出目录</div><div class="fr-ctl" style="width:100%"><div class="pathbox">C:\Videos\out\</div><button class="btn">浏览…</button></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vc-page">
+        <div class="pane-hd"><div class="ph-title">设置</div></div>
+        <div class="card" style="margin-top:14px">
+          <div class="card-bd">
+            <div class="kv"><span class="kv-k">配置目录</span><span class="kv-v" style="font-family:Consolas">%LOCALAPPDATA%\MagpieVideo\config\v1\config.json</span></div>
+            <div class="kv"><span class="kv-k">DLSSNR 运行时</span><span class="kv-v">nvngx_dlssnr.dll（第三方组件，随发布包披露）</span></div>
+            <div class="kv"><span class="kv-k">语言</span><span class="kv-v"><div class="select small">中文 (简体)</div></span></div>
+            <div class="kv"><span class="kv-k">主题</span><span class="kv-v"><div class="select small">跟随系统</div></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vc-page">
+        <div class="pane-hd"><div class="ph-title">关于</div></div>
+        <div class="card" style="margin-top:14px">
+          <div class="card-bd">
+            <div class="kv"><span class="kv-k">版本</span><span class="kv-v">MagpieVideo 0.1.0（实验分支派生）</span></div>
+            <div class="kv"><span class="kv-k">许可</span><span class="kv-v">GPLv3（复用 Magpie.Core 静态库）</span></div>
+            <div class="kv"><span class="kv-k">第三方组件</span><span class="kv-v">NVIDIA NGX (DLSSNR) · FFmpeg (LGPL) · ONNX / TensorRT 模型 —— 逐组件披露与审核</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="proto-switcher">
+  <button id="prev" title="上一个变体 (←)">◀</button>
+  <span class="ps-label" id="ps-label">A · 单页工作台</span>
+  <button id="next" title="下一个变体 (→)">▶</button>
+</div>
+
+<script>
+(function () {
+  var keys = ['a', 'b', 'c'];
+  var names = { a: '单页工作台 ✓ 选定', b: '四步向导', c: '导航壳' };
+  var current = new URLSearchParams(location.search).get('variant') || 'a';
+  if (keys.indexOf(current) < 0) current = 'a';
+
+  function show(v) {
+    current = v;
+    document.querySelectorAll('.variant').forEach(function (s) {
+      s.style.display = (s.dataset.variant === v) ? 'block' : 'none';
+    });
+    document.getElementById('ps-label').textContent = v.toUpperCase() + ' · ' + names[v];
+    var url = new URL(location.href);
+    url.searchParams.set('variant', v);
+    history.replaceState(null, '', url);
+  }
+  function step(d) {
+    var i = keys.indexOf(current);
+    show(keys[(i + d + keys.length) % keys.length]);
+  }
+
+  document.getElementById('prev').addEventListener('click', function () { step(-1); });
+  document.getElementById('next').addEventListener('click', function () { step(1); });
+
+  document.addEventListener('keydown', function (e) {
+    var t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+    if (e.key === 'ArrowLeft') { step(-1); e.preventDefault(); }
+    if (e.key === 'ArrowRight') { step(1); e.preventDefault(); }
+  });
+
+  show(current);
+
+  // collapsible cards (variant A: output settings default collapsed)
+  document.querySelectorAll('.card.collapsed').forEach(function (card) {
+    var hd = card.querySelector('.card-hd');
+    if (hd) hd.style.cursor = 'pointer';
+    hd.addEventListener('click', function () {
+      card.classList.toggle('collapsed');
+    });
+  });
+
+  // split compare divider drag (variant B embedded compare)
+  document.querySelectorAll('.split').forEach(function (sp) {
+    var div = sp.querySelector('.sp-divider');
+    var onMove = function (e) {
+      var r = sp.getBoundingClientRect();
+      var p = Math.min(0.95, Math.max(0.05, (e.clientX - r.left) / r.width)) * 100;
+      sp.style.setProperty('--pos', p + '%');
+    };
+    div.addEventListener('mousedown', function (e) {
+      e.preventDefault();
+      onMove(e);
+      var mm = function (ev) { onMove(ev); };
+      var mu = function () {
+        document.removeEventListener('mousemove', mm);
+        document.removeEventListener('mouseup', mu);
+      };
+      document.addEventListener('mousemove', mm);
+      document.addEventListener('mouseup', mu);
+    });
+  });
+})();
+</script>
+</body>
+</html>
