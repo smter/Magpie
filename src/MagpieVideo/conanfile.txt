@@ -1,0 +1,11 @@
+[requires]
+fmt/12.1.0
+spdlog/1.17.0
+
+[generators]
+MSBuildDeps
+
+[options]
+spdlog/*:header_only=True
+spdlog/*:wchar_filenames=True
+spdlog/*:no_exceptions=True

@@ -102,6 +102,11 @@ if args.platform == "x64" and not os.path.isfile(
 
 print("清理完毕", flush=True)
 
+# 确认第二个 exe 槽位（MagpieVideo）已构建，见 ADR-0001
+if not os.path.isfile(os.path.join(".", "MagpieVideo.exe")):
+    raise Exception("缺少 MagpieVideo.exe")
+print("已确认 MagpieVideo.exe", flush=True)
+
 #####################################################################
 #
 # 为 TouchHelper 签名

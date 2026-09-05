@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\packages\Microsoft.Windows.CppWinRT.3.0.260520.1\build\native\Microsoft.Windows.CppWinRT.props" Condition="Exists('..\..\packages\Microsoft.Windows.CppWinRT.3.0.260520.1\build\native\Microsoft.Windows.CppWinRT.props')" />
+  <Import Project="..\..\packages\Microsoft.UI.Xaml.2.8.7\build\native\Microsoft.UI.Xaml.props" Condition="Exists('..\..\packages\Microsoft.UI.Xaml.2.8.7\build\native\Microsoft.UI.Xaml.props')" />
+  <PropertyGroup Label="Globals">
+    <CppWinRTFastAbi>true</CppWinRTFastAbi>
+    <CppWinRTOptimized>true</CppWinRTOptimized>
+    <CppWinRTRootNamespaceAutoMerge>true</CppWinRTRootNamespaceAutoMerge>
+    <CppWinRTGenerateWindowsMetadata>true</CppWinRTGenerateWindowsMetadata>
+    <CppWinRTVerbosity>low</CppWinRTVerbosity>
+    <MinimalCoreWin>true</MinimalCoreWin>
+    <ProjectGuid>{A3D2C698-33AB-4FB8-87AE-C429B8A05D6D}</ProjectGuid>
+    <RootNamespace>$(MSBuildProjectName)</RootNamespace>
+    <!-- 为了编译为 exe，AppContainerApplication 必须为 false，否则虽然可以编译但无法在 VS 中调试。 -->
+    <!-- 这会导致不会自动生成 pri，稍后我们手动导入 Microsoft.AppXPackage.Targets 来解决这个问题。 -->
+    <AppContainerApplication>false</AppContainerApplication>
+    <ApplicationType>Windows Store</ApplicationType>
+    <ApplicationTypeRevision>10.0</ApplicationTypeRevision>
+    <WindowsTargetPlatformVersion Condition="'$(WindowsTargetPlatformVersion)' == ''">10.0.26100.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformMinVersion>10.0.26100.0</WindowsTargetPlatformMinVersion>
+    <IntDir>$(SolutionDir)\obj\$(Platform)\$(Configuration)\$(MSBuildProjectName)\</IntDir>
+    <OutDir>$(SolutionDir)\bin\$(Platform)\$(Configuration)\</OutDir>
+    <GeneratedFilesDir>$(IntDir)\Generated Files\</GeneratedFilesDir>
+    <AppxBundlePlatforms>x64|arm64</AppxBundlePlatforms>
+    <DesktopCompatible>true</DesktopCompatible>
+    <!-- 将 xbf 文件打包进 pri -->
+    <!-- https://github.com/microsoft/terminal/blob/9eb191d5453fed890bad63952e425e1240aa8df5/src/cascadia/TerminalApp/TerminalAppLib.vcxproj#L17-L18 -->
+    <DisableEmbeddedXbf>false</DisableEmbeddedXbf>
+    <XamlComponentResourceLocation>nested</XamlComponentResourceLocation>
+    <!-- 防止 xbf 被复制到输出文件夹 -->
+    <GenerateLibraryLayout>true</GenerateLibraryLayout>
+    <!-- 直接生成 resources.pri，使用 ComputeInputPriFiles 合并引用的 pri -->
+    <ProjectPriFileName>resources.pri</ProjectPriFileName>
+    <!-- 跳过 CreateWinMD，这一步似乎是多余的，而且 clang-cl 不支持生成 winmd -->
+    <GenerateBuildCompilePassWinMD>false</GenerateBuildCompilePassWinMD>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <Import Project="..\Common.Pre.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset Condition="$(VS17)">v143</PlatformToolset>
+    <PlatformToolset Condition="!$(VS17)">v145</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup Condition="$(UseClangCL)">
+    <!-- 来自 $(VCTargetsPath)\Microsoft.Cpp.ClangCl.Common.props -->
+    <CLToolExe>clang-cl.exe</CLToolExe>
+    <LinkToolExe>lld-link.exe</LinkToolExe>
+    <LibToolExe>llvm-lib.exe</LibToolExe>
+    <LLVMInstallDir Condition="'$(PreferredToolArchitecture)' == 'x64'">$(VsInstallRoot)\VC\Tools\Llvm\x64\</LLVMInstallDir>
+    <LLVMInstallDir Condition="'$(PreferredToolArchitecture)' == 'arm64'">$(VsInstallRoot)\VC\Tools\Llvm\ARM64\</LLVMInstallDir>
+    <LLVMInstallDir Condition="'$(LLVMInstallDir)' == ''">$(VsInstallRoot)\VC\Tools\Llvm\</LLVMInstallDir>
+    <ExecutablePath>$(LLVMInstallDir)\bin;$(ExecutablePath)</ExecutablePath>
+    <!-- Add Clang include path for IntelliSense -->
+    <IncludePath>$(LLVMInstallDir)\lib\clang\$(LLVMIncludeVersion)\include;$(IncludePath)</IncludePath>
+    <ExcludePath>$(LLVMInstallDir)\lib\clang\$(LLVMIncludeVersion)\include;$(ExcludePath)</ExcludePath>
+    <!-- ClangCl is not compatible with MSVC analysis, use clang-tidy as default -->
+    <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
+    <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
+    <ClCompilerPath>$(ClangAnalysisToolsPath)\clang-cl.exe</ClCompilerPath>
+    <LlvmArchitectureSwitch Condition="'$(Platform)'=='x64'">--target=amd64-pc-windows-msvc</LlvmArchitectureSwitch>
+    <LlvmArchitectureSwitch Condition="'$(Platform)'=='ARM64'">--target=arm64-pc-windows-msvc</LlvmArchitectureSwitch>
+    <!-- clang-cl 不支持 /MP，设置 MultiProcCL 属性可以并行运行多个 clang-cl 进程 -->
+    <MultiProcCL>true</MultiProcCL>
+  </PropertyGroup>
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared" />
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$([Microsoft.Build.Utilities.ToolLocationHelper]::GetPlatformExtensionSDKLocation(`WindowsDesktop, Version=10.0.26100.0`, $(TargetPlatformIdentifier), $(TargetPlatformVersion),  $(SDKReferenceDirectoryRoot), $(SDKExtensionDirectoryRoot), $(SDKReferenceRegistryRoot)))\DesignTime\CommonConfiguration\Neutral\WindowsDesktop.props" Condition="exists('$([Microsoft.Build.Utilities.ToolLocationHelper]::GetPlatformExtensionSDKLocation(`WindowsDesktop, Version=10.0.26100.0`, $(TargetPlatformIdentifier), $(TargetPlatformVersion),  $(SDKReferenceDirectoryRoot), $(SDKExtensionDirectoryRoot), $(SDKReferenceRegistryRoot)))\DesignTime\CommonConfiguration\Neutral\WindowsDesktop.props')" />
+    <Import Project="..\Common.Post.props" />
+    <Import Project="..\WinUI.targets" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <!-- 删除用于 XAML 设计器的几个导出函数，编译为 exe 不需要它们。 -->
+      <!-- 另外这些导出函数不支持 ARM64，所以即使编译为 dll 也应禁用它们，然后自己导出 DllGetActivationFactory。 -->
+      <PreprocessorDefinitions>_VSDESIGNER_DONT_LOAD_AS_DLL;DISABLE_XAML_GENERATED_MAIN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <!-- 不知为何 Directory.Build.props 中的不起作用 -->
+      <WarningLevel>Level4</WarningLevel>
+      <AdditionalIncludeDirectories>..\Magpie.Core\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <ClCompile Condition="$(UseClangCL)">
+      <AdditionalOptions>$(LlvmArchitectureSwitch) %(AdditionalOptions)</AdditionalOptions>
+      <!-- clang-cl 不支持 /ZI，而且 /Zi 和 /Z7 效果相同。 -->
+      <!-- Microsoft.Cpp.ClangCl.Common.target 始终使用 OldStyle (/Z7)，我们和它保持一致。 -->
+      <DebugInformationFormat Condition="'$(DisablePDB)' != 'true'">OldStyle</DebugInformationFormat>
+      <!-- clang-cl 使用 MultiProcCL 属性实现并行编译 -->
+      <MultiProcessorCompilation>false</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+      <SubSystem>Windows</SubSystem>
+      <AdditionalDependencies>Gdi32.lib;Dwmapi.lib;Shell32.lib;Ole32.lib;Imagehlp.lib;Comctl32.lib;Shlwapi.lib;Magnification.lib;bcp47mrm.lib;Shcore.lib;Uxtheme.lib;Taskschd.lib;Dcomp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="$(EnableDLSSNR) And '$(Platform)' == 'x64'">$(DLSSSdkDir)\lib\Windows_x86_64\x64\nvsdk_ngx_s.lib;D3D12.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <DelayLoadDLLs>d3dcompiler_47.dll;Magnification.dll;Imagehlp.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+    </Link>
+  </ItemDefinitionGroup>
+  <!-- 删除 clang-cl 不支持的选项 -->
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.ClangCl.Exclusion.props" Condition="$(UseClangCL)" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.LldLink.Exclusion.props" Condition="$(UseClangCL)" />
+  <ItemGroup>
+    <ClInclude Include="App.h">
+      <DependentUpon>App.xaml</DependentUpon>
+    </ClInclude>
+    <ClInclude Include="MagpieVideoConstants.h" />
+    <ClInclude Include="MainWindow.h" />
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="WorkbenchPage.h">
+      <DependentUpon>WorkbenchPage.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="App.cpp">
+      <DependentUpon>App.xaml</DependentUpon>
+    </ClCompile>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="MainWindow.cpp" />
+    <ClCompile Include="pch.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="WorkbenchPage.cpp">
+      <DependentUpon>WorkbenchPage.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </ClCompile>
+    <ClCompile Include="$(GeneratedFilesDir)module.g.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Midl Include="App.idl">
+      <DependentUpon>App.xaml</DependentUpon>
+    </Midl>
+    <None Include="WorkbenchPage.idl">
+      <DependentUpon>WorkbenchPage.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="WorkbenchPage.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="MagpieVideo.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <SDKReference Include="WindowsDesktop, Version=10.0.26100.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="conanfile.txt">
+      <DeploymentContent>false</DeploymentContent>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="app.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="MagpieVideo.ico">
+      <DeploymentContent>false</DeploymentContent>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Magpie.Core\Magpie.Core.vcxproj">
+      <Project>{0e5205ae-dfa9-4cb8-b662-e43cd6512e2a}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Target Name="CopyDLSSNRRuntime" AfterTargets="Build" Condition="$(EnableDLSSNR) And '$(Platform)' == 'x64'">
+    <Copy SourceFiles="$(DLSSNRRuntimeDir)\nvngx_dlssnr.dll" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+  </Target>
+  <Target Name="CopyFrameGuidanceDepthRuntime" AfterTargets="Build" Condition="$(EnableDepthAnythingV2) And '$(Platform)' == 'x64'">
+    <ItemGroup>
+      <DepthTensorRTRuntime Include="$(OnnxRuntimeTensorRTDir)\*.dll" />
+      <DepthTensorRTSdkRuntime Include="$(TensorRTRuntimeDir)\nvinfer*_10.dll;$(TensorRTRuntimeDir)\nvonnxparser_10.dll" />
+      <DepthDirectMLRuntime Include="$(OnnxRuntimeDirectMLDir)\*.dll;$(DirectMLRuntimeDir)\DirectML.dll" />
+    </ItemGroup>
+    <Copy SourceFiles="$(DepthAnythingModelDir)\model_fp16.onnx;$(DepthAnythingModelDir)\LICENSE.Depth-Anything-V2.txt" DestinationFolder="$(OutDir)\FrameGuidance\DepthAnythingV2" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(DepthTensorRTRuntime);@(DepthTensorRTSdkRuntime)" DestinationFolder="$(OutDir)\FrameGuidance\TensorRT" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(DepthDirectMLRuntime)" DestinationFolder="$(OutDir)\FrameGuidance\DirectML" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(OnnxRuntimeTensorRTDir)\..\..\..\LICENSE;$(OnnxRuntimeTensorRTDir)\..\..\..\ThirdPartyNotices.txt" DestinationFolder="$(OutDir)\FrameGuidance\TensorRT\Licenses" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(OnnxRuntimeDirectMLDir)\..\..\..\LICENSE;$(OnnxRuntimeDirectMLDir)\..\..\..\ThirdPartyNotices.txt;$(DirectMLRuntimeDir)\..\..\LICENSE.txt;$(DirectMLRuntimeDir)\..\..\ThirdPartyNotices.txt" DestinationFolder="$(OutDir)\FrameGuidance\DirectML\Licenses" SkipUnchangedFiles="true" />
+  </Target>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <!-- 导入 Microsoft.AppXPackage.Targets 以生成 pri，应在 Microsoft.Cpp.targets 之后 -->
+  <Import Project="$(MsAppxPackageTargets)" />
+  <!-- 编译为非打包应用时防止引用项目的 winmd 被复制到输出文件夹。 -->
+  <!-- 不适用于打包配置，编译系统需要这些 winmd 来解析可激活类。 -->
+  <Target Name="RemoveReferenceWinMD" AfterTargets="ResolveAssemblyReferences" Condition="!$(IsPackaged)">
+    <ItemGroup>
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="'%(Extension)' == '.winmd'" />
+    </ItemGroup>
+  </Target>
+  <!-- 防止 xbf 被复制到子文件夹 -->
+  <Target Name="AddProcessedXamlFilesToCopyLocal" />
+  <!-- resources.pri 中 App.xbf 必须是 Files 的根节点，否则程序将无法运行 -->
+  <!-- https://github.com/microsoft/terminal/blob/a2bb3136bb52c253060aa281396dbd12316b33a6/src/cascadia/TerminalApp/TerminalAppLib.vcxproj#L458 -->
+  <Target Name="PlaceAppXbfAtRootOfResourceTree" AfterTargets="GetPackagingOutputs">
+    <ItemGroup>
+      <_RelocatedAppXamlData Include="@(PackagingOutputs)" Condition="'%(Filename)' == 'App' and ('%(Extension)' == '.xaml' or '%(Extension)' == '.xbf')" />
+      <PackagingOutputs Remove="@(_RelocatedAppXamlData)" />
+      <PackagingOutputs Include="@(_RelocatedAppXamlData)">
+        <TargetPath>%(Filename)%(Extension)</TargetPath>
+      </PackagingOutputs>
+    </ItemGroup>
+  </Target>
+  <!-- 将引用的 pri 合并进 resources.pri -->
+  <Target Name="ComputeInputPriFiles" BeforeTargets="_GenerateProjectPriConfigurationFiles">
+    <ItemGroup>
+      <_PriFile Include="@(PackagingOutputs)" Condition="'%(Extension)' == '.pri' And '%(Filename)' != 'resources'" />
+    </ItemGroup>
+  </Target>
+  <PropertyGroup Condition="!$(IsPackaged)">
+    <_ManifestsDir>$(IntDir)\Manifests\</_ManifestsDir>
+  </PropertyGroup>
+  <!-- 编译为非打包应用时向清单文件添加运行时使用到的 WinRT 组件 -->
+  <!-- Reg-free WinRT: https://blogs.windows.com/windowsdeveloper/2019/04/30/enhancing-non-packaged-desktop-apps-using-windows-runtime-components/ -->
+  <!-- 来自 https://github.com/microsoft/terminal/blob/a2bb3136bb52c253060aa281396dbd12316b33a6/build/rules/GenerateSxsManifestsFromWinmds.targets -->
+  <Target Name="UnpackagedWin32MapWinmdsToManifestFiles" DependsOnTargets="ResolveAssemblyReferences" Condition="!$(IsPackaged)">
+    <ItemGroup>
+      <!-- 为每一个引用的存在 Implementation 属性的 winmd 生成清单文件 -->
+      <_UnpackagedWin32WinmdManifest Include="@(ReferencePath->'$(_ManifestsDir)%(FileName).manifest')" Condition="'%(ReferencePath.IsSystemReference)' != 'true' And '%(ReferencePath.WinMDFile)' == 'true' And '%(ReferencePath.ReferenceSourceTarget)' == 'ResolveAssemblyReference' And '%(ReferencePath.Implementation)' != ''">
+        <WinMDPath>%(ReferencePath.FullPath)</WinMDPath>
+        <Implementation>$([System.IO.Path]::GetFileName('%(ReferencePath.Implementation)'))</Implementation>
+      </_UnpackagedWin32WinmdManifest>
+      <!-- 为引用的项目生成的 winmd 生成清单文件 -->
+      <_UnpackagedWin32WinmdProjectReference Condition="'%(_ResolvedNativeProjectReferencePaths.ProjectType)' != 'StaticLibrary' And '%(_ResolvedNativeProjectReferencePaths.DeploymentContent)' != 'false'" Include="@(_ResolvedNativeProjectReferencePaths-&gt;WithMetadataValue('FileType','winmd')-&gt;'%(RootDir)%(Directory)%(TargetPath)')" />
+      <FileReads Include="@(_UnpackagedWin32WinmdProjectReference)" />
+      <_UnpackagedWin32WinmdManifest Include="@(_UnpackagedWin32WinmdProjectReference->'$(_ManifestsDir)%(FileName).manifest')">
+        <WinMDPath>%(Identity)</WinMDPath>
+      </_UnpackagedWin32WinmdManifest>
+    </ItemGroup>
+  </Target>
+  <Target Name="UnpackagedWin32GenerateAdditionalWinmdManifests" Condition="!$(IsPackaged)" Inputs="%(_UnpackagedWin32WinmdManifest.WinMDPath)" Outputs="@(_UnpackagedWin32WinmdManifest)" BeforeTargets="Link" DependsOnTargets="UnpackagedWin32MapWinmdsToManifestFiles">
+    <MakeDir Directories="$(_ManifestsDir)" />
+    <!-- 批量处理 _UnpackagedWin32WinmdManifest 中的元素 -->
+    <Exec Command="mt.exe -nologo -winmd:&quot;%(_UnpackagedWin32WinmdManifest.WinMDPath)&quot; -dll:%(_UnpackagedWin32WinmdManifest.Implementation) -out:&quot;%(_UnpackagedWin32WinmdManifest.Identity)&quot;" />
+    <ItemGroup>
+      <Manifest Include="@(_UnpackagedWin32WinmdManifest)" />
+    </ItemGroup>
+  </Target>
+  <!-- 使用 clang-cl 编译 cppwinrt 生成的源文件时关闭警告-->
+  <Target Name="FixClangCLCppWinRT" BeforeTargets="ClCompile" Condition="$(UseClangCL)">
+    <ItemGroup>
+      <_XamlTypeInfoCpp Include="@(ClCompile)" Condition="'%(Extension)' == '.cpp' And ('%(Filename)' == 'XamlTypeInfo.Impl.g' Or '%(Filename)' == 'XamlTypeInfo.g')" />
+      <ClCompile Remove="@(_XamlTypeInfoCpp)" />
+      <ClCompile Include="@(_XamlTypeInfoCpp)">
+        <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      </ClCompile>
+    </ItemGroup>
+  </Target>
+  <!-- lld-link 不支持 /WINMD 和 /WINMDFILE -->
+  <Target Name="FixClangCLLink" BeforeTargets="Link" Condition="$(UseClangCL)">
+    <PropertyGroup>
+      <_GenerateWindowsMetadata />
+    </PropertyGroup>
+    <ItemGroup>
+      <_NoWinMD Include="@(Link)" />
+      <Link Remove="@(_NoWinMD)" />
+      <Link Include="@(_NoWinMD)">
+        <WindowsMetadataFile />
+      </Link>
+    </ItemGroup>
+  </Target>
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\..\packages\Microsoft.UI.Xaml.2.8.7\build\native\Microsoft.UI.Xaml.targets" Condition="Exists('..\..\packages\Microsoft.UI.Xaml.2.8.7\build\native\Microsoft.UI.Xaml.targets')" />
+    <Import Project="..\..\packages\Microsoft.Windows.ImplementationLibrary.1.0.260126.7\build\native\Microsoft.Windows.ImplementationLibrary.targets" Condition="Exists('..\..\packages\Microsoft.Windows.ImplementationLibrary.1.0.260126.7\build\native\Microsoft.Windows.ImplementationLibrary.targets')" />
+    <Import Project="..\..\packages\Microsoft.Windows.CppWinRT.3.0.260520.1\build\native\Microsoft.Windows.CppWinRT.targets" Condition="Exists('..\..\packages\Microsoft.Windows.CppWinRT.3.0.260520.1\build\native\Microsoft.Windows.CppWinRT.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>这台计算机上缺少此项目引用的 NuGet 程序包。使用“NuGet 程序包还原”可下载这些程序包。有关更多信息，请参见 http://go.microsoft.com/fwlink/?LinkID=322105。缺少的文件是 {0}。</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\..\packages\Microsoft.UI.Xaml.2.8.7\build\native\Microsoft.UI.Xaml.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.UI.Xaml.2.8.7\build\native\Microsoft.UI.Xaml.props'))" />
+    <Error Condition="!Exists('..\..\packages\Microsoft.UI.Xaml.2.8.7\build\native\Microsoft.UI.Xaml.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.UI.Xaml.2.8.7\build\native\Microsoft.UI.Xaml.targets'))" />
+    <Error Condition="!Exists('..\..\packages\Microsoft.Windows.ImplementationLibrary.1.0.260126.7\build\native\Microsoft.Windows.ImplementationLibrary.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.Windows.ImplementationLibrary.1.0.260126.7\build\native\Microsoft.Windows.ImplementationLibrary.targets'))" />
+    <Error Condition="!Exists('..\..\packages\Microsoft.Windows.CppWinRT.3.0.260520.1\build\native\Microsoft.Windows.CppWinRT.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.Windows.CppWinRT.3.0.260520.1\build\native\Microsoft.Windows.CppWinRT.props'))" />
+    <Error Condition="!Exists('..\..\packages\Microsoft.Windows.CppWinRT.3.0.260520.1\build\native\Microsoft.Windows.CppWinRT.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.Windows.CppWinRT.3.0.260520.1\build\native\Microsoft.Windows.CppWinRT.targets'))" />
+  </Target>
+  <!-- 防止生成的 winmd 被复制到输出文件夹 -->
+  <PropertyGroup Condition="!$(IsPackaged)">
+    <CppWinRTProjectWinMD>$(CppWinRTMergedDir)\$(RootNamespace).winmd</CppWinRTProjectWinMD>
+  </PropertyGroup>
+  <Target Name="ValidateUnpackagedReleaseLayout" AfterTargets="Build"
+          Condition="'$(Configuration)' == 'Release' And '$(IsPackaged)' != 'true'">
+    <Error Condition="!Exists('$(OutDir)resources.pri')"
+           Text="Release runtime layout is incomplete: $(OutDir)resources.pri was not generated. Do not deploy MagpieVideo.exe by itself." />
+  </Target>
+</Project>

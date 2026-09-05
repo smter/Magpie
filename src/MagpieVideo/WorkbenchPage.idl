@@ -1,0 +1,5 @@
+namespace MagpieVideo {
+	runtimeclass WorkbenchPage : Windows.UI.Xaml.Controls.Page {
+		WorkbenchPage();
+	}
+}

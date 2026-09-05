@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="App.h" />
+    <ClInclude Include="MainWindow.h" />
+    <ClInclude Include="MagpieVideoConstants.h" />
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="WorkbenchPage.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="App.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="MainWindow.cpp" />
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="WorkbenchPage.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.idl" />
+    <None Include="WorkbenchPage.idl" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml" />
+    <Page Include="WorkbenchPage.xaml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="MagpieVideo.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
+    <Image Include="MagpieVideo.ico">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Manifest Include="app.manifest" />
+  </ItemGroup>
+</Project>
