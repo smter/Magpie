@@ -1,6 +1,14 @@
 #pragma once
 #include "NativeEffectBackend.h"
 
+// Experimental baseline: _ngxCore is reserved for the upcoming NGX wiring and
+// is not yet read. Silence -Wunused-private-field (ClangCL only; MSVC has no
+// such warning) so the stub compiles cleanly until the integration lands.
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-private-field"
+#endif
+
 namespace Magpie {
 
 class DeviceResources;
@@ -59,5 +67,9 @@ private:
 	DLSSNRSettings _settings;
 	NgxD3D12Core* _ngxCore = nullptr;
 };
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 }
