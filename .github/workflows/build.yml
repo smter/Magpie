@@ -5,6 +5,20 @@ on:
     paths: [ '.github/workflows/build.yml', 'Magpie.slnx', '*.props', 'scripts/publish.py', 'src/**' ]
   pull_request:
     paths: [ '.github/workflows/build.yml', 'Magpie.slnx', '*.props', 'scripts/publish.py', 'src/**' ]
+  workflow_dispatch:
+    inputs:
+      compiler:
+        description: Compiler
+        required: true
+        default: MSVC
+        type: choice
+        options: [MSVC, ClangCL]
+      platform:
+        description: Platform
+        required: true
+        default: x64
+        type: choice
+        options: [x64, ARM64]
 
 jobs:
   build:
