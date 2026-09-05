@@ -70,9 +70,9 @@ jobs:
       shell: pwsh
       run: |
         $dst = "publish\x64\_pri_debug"
-        New-Item -ItemType Directory -Path $dst -Force | Out-Null
-        Copy-Item "obj\x64\Release\MagpieVideo\embed\*" $dst -Recurse -Force -ErrorAction SilentlyContinue
-        Copy-Item "obj\x64\Release\Magpie\embed\*" $dst -Recurse -Force -ErrorAction SilentlyContinue
+        New-Item -ItemType Directory -Path "$dst\embed_magpievideo", "$dst\embed_magpie" -Force | Out-Null
+        Copy-Item "obj\x64\Release\MagpieVideo\embed\*" "$dst\embed_magpievideo" -Recurse -Force -ErrorAction SilentlyContinue
+        Copy-Item "obj\x64\Release\Magpie\embed\*" "$dst\embed_magpie" -Recurse -Force -ErrorAction SilentlyContinue
         Copy-Item "publish\x64\resources.pri" "$dst\resources_magpie.pri" -Force -ErrorAction SilentlyContinue
         Copy-Item "publish\x64\resources.magpievideo.pri" $dst -Force -ErrorAction SilentlyContinue
         Copy-Item "obj\x64\Release\MagpieVideo\priconfig.xml" $dst -Force -ErrorAction SilentlyContinue
