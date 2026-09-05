@@ -2,6 +2,13 @@
 #include "NativeEffectBackend.h"
 #include "ScalingOptions.h"
 
+// Experimental baseline stub: reserved members are not yet read. Silence
+// -Wunused-private-field (ClangCL only; MSVC has no such warning).
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-private-field"
+#endif
+
 namespace Magpie {
 
 class DeviceResources;
@@ -37,5 +44,9 @@ private:
 	uint32_t _qualityLevel = 8;
 	ScalingError _initializationError = ScalingError::NoError;
 };
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 }

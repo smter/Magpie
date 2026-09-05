@@ -1,6 +1,14 @@
 #pragma once
 #include <d3d12.h>
 
+// Experimental baseline stub: consumer/parameter-block tracking is reserved
+// for the upcoming integration and not yet read. Silence -Wunused-private-field
+// (ClangCL only; MSVC has no such warning).
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-private-field"
+#endif
+
 struct NVSDK_NGX_Parameter;
 
 namespace Magpie {
@@ -41,5 +49,9 @@ private:
 	uint32_t _activeParameterBlocks = 0;
 	bool _initialized = false;
 };
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 }
