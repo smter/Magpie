@@ -29,8 +29,8 @@
     <XamlComponentResourceLocation>nested</XamlComponentResourceLocation>
     <!-- 防止 xbf 被复制到输出文件夹 -->
     <GenerateLibraryLayout>true</GenerateLibraryLayout>
-    <!-- 直接生成 resources.pri，使用 ComputeInputPriFiles 合并引用的 pri -->
-    <ProjectPriFileName>resources.pri</ProjectPriFileName>
+    <!-- 直接生成 pri，使用 ComputeInputPriFiles 合并引用的 pri；用独立文件名避免与 magpie.exe 共享目录时互相覆盖 resources.pri -->
+    <ProjectPriFileName>resources.magpievideo.pri</ProjectPriFileName>
     <!-- 跳过 CreateWinMD，这一步似乎是多余的，而且 clang-cl 不支持生成 winmd -->
     <GenerateBuildCompilePassWinMD>false</GenerateBuildCompilePassWinMD>
   </PropertyGroup>
@@ -294,7 +294,7 @@
   </PropertyGroup>
   <Target Name="ValidateUnpackagedReleaseLayout" AfterTargets="Build"
           Condition="'$(Configuration)' == 'Release' And '$(IsPackaged)' != 'true'">
-    <Error Condition="!Exists('$(OutDir)resources.pri')"
-           Text="Release runtime layout is incomplete: $(OutDir)resources.pri was not generated. Do not deploy MagpieVideo.exe by itself." />
+    <Error Condition="!Exists('$(OutDir)resources.magpievideo.pri')"
+           Text="Release runtime layout is incomplete: $(OutDir)resources.magpievideo.pri was not generated. publish.py merges it into resources.pri." />
   </Target>
 </Project>
