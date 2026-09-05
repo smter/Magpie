@@ -1,6 +1,15 @@
 #pragma once
 #include "NativeEffectBackend.h"
 
+// The DLSS-SR adapter below is an experimental baseline stub: several private
+// members are reserved for the upcoming NGX integration and are not yet read.
+// Silence -Wunused-private-field (ClangCL only; MSVC has no such warning) so the
+// stub compiles cleanly until the integration lands.
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-private-field"
+#endif
+
 namespace Magpie {
 
 class DeviceResources;
@@ -58,5 +67,9 @@ private:
 	FrameGuidanceFrameId _lastGuidanceResetFrameId =
 		std::numeric_limits<FrameGuidanceFrameId>::max();
 };
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 }
