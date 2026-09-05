@@ -57,6 +57,10 @@ jobs:
           if (Test-Path $cfg) { Write-Host "===== $proj priconfig.xml ====="; Get-Content $cfg }
           $emb = "obj\x64\Release\$proj\embed"
           if (Test-Path $emb) { Write-Host "===== $proj embed tree ====="; Get-ChildItem $emb -Recurse -File | ForEach-Object { $_.FullName.Replace((Resolve-Path $emb).Path, 'embed') } }
+          foreach ($rf in @("pri.resfiles", "embed.resfiles", "resources.resfiles", "filtered.layout.resfiles", "unfiltered.layout.resfiles")) {
+            $p = "obj\x64\Release\$proj\$rf"
+            if (Test-Path $p) { Write-Host "===== $proj/$rf ====="; Get-Content $p }
+          }
         }
         Write-Host "===== makepri version ====="
         & 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\MakePri.exe' new /? 2>&1 | Select-String -Pattern 'AutoMerge|IndexFile|OutputFile|IndexName' | ForEach-Object { $_.Line.Trim() }
