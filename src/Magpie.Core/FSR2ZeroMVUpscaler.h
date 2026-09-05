@@ -2,6 +2,13 @@
 #include "HalfResOpticalFlow.h"
 #include "NativeEffectBackend.h"
 
+// Experimental baseline stub: reserved members are not yet read. Silence
+// -Wunused-private-field (ClangCL only; MSVC has no such warning).
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-private-field"
+#endif
+
 namespace Magpie {
 
 class DeviceResources;
@@ -47,5 +54,9 @@ private:
 	uint32_t _frameIndex = 0;
 	std::unique_ptr<HalfResOpticalFlow> _opticalFlow;
 };
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 }

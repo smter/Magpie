@@ -1,6 +1,13 @@
 #pragma once
 #include "NativeEffectBackend.h"
 
+// Experimental baseline stub: reserved members are not yet read. Silence
+// -Wunused-private-field (ClangCL only; MSVC has no such warning).
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-private-field"
+#endif
+
 namespace Magpie {
 
 class DeviceResources;
@@ -29,5 +36,9 @@ private:
 	bool _enableJitter = false;
 	bool _useFsr4 = false;
 };
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 }
