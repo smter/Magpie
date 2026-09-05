@@ -214,10 +214,10 @@
       </PackagingOutputs>
     </ItemGroup>
   </Target>
-  <!-- 将引用的 pri 合并进 resources.pri -->
+  <!-- 将引用的 pri 合并进本工程的 pri（排除本工程自己的 pri 输出，避免自引用） -->
   <Target Name="ComputeInputPriFiles" BeforeTargets="_GenerateProjectPriConfigurationFiles">
     <ItemGroup>
-      <_PriFile Include="@(PackagingOutputs)" Condition="'%(Extension)' == '.pri' And '%(Filename)' != 'resources'" />
+      <_PriFile Include="@(PackagingOutputs)" Condition="'%(Extension)' == '.pri' And '%(Filename)%(Extension)' != '$(ProjectPriFileName)'" />
     </ItemGroup>
   </Target>
   <PropertyGroup Condition="!$(IsPackaged)">
