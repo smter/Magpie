@@ -48,6 +48,19 @@ jobs:
       if: github.ref != 'refs/heads/dev' && github.ref != 'refs/heads/main'
       run: python scripts/publish.py --compiler=${{ matrix.compiler }} --platform=${{ matrix.platform }}
 
+    - name: Diagnostic dump (priconfig, for pri-merge design)
+      if: success()
+      shell: pwsh
+      run: |
+        foreach ($proj in @("MagpieVideo", "Magpie")) {
+          $cfg = "obj\x64\Release\$proj\priconfig.xml"
+          if (Test-Path $cfg) { Write-Host "===== $proj priconfig.xml ====="; Get-Content $cfg }
+          $emb = "obj\x64\Release\$proj\embed"
+          if (Test-Path $emb) { Write-Host "===== $proj embed tree ====="; Get-ChildItem $emb -Recurse -File | ForEach-Object { $_.FullName.Replace((Resolve-Path $emb).Path, 'embed') } }
+        }
+        Write-Host "===== makepri version ====="
+        & 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\MakePri.exe' new /? 2>&1 | Select-String -Pattern 'AutoMerge|IndexFile|OutputFile|IndexName' | ForEach-Object { $_.Line.Trim() }
+
     - name: Build and sign
       if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main'
       run: python scripts/publish.py --compiler=${{ matrix.compiler }} --platform=${{ matrix.platform }} --pfx-path=certs\Magpie.pfx --pfx-password="${{ secrets.MAGPIE_PFX_PASSWORD }}"
