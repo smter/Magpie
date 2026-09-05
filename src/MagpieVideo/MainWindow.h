@@ -9,6 +9,8 @@ namespace MagpieVideo {
 // 只承载一个 DesktopWindowXamlSource，无自定义标题栏（T1 简化）。
 class MainWindow : public ::Magpie::WindowBaseT<MainWindow> {
 public:
+	friend ::Magpie::WindowBaseT<MainWindow>;
+
 	MainWindow() = default;
 
 	bool Create();
@@ -23,9 +25,10 @@ public:
 		return _content;
 	}
 
-private:
+protected:
 	LRESULT _MessageHandler(UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
 
+private:
 	void _UpdateIslandPosition(int width, int height) noexcept;
 
 	HWND _hwndXamlIsland = nullptr;

@@ -8,5 +8,3 @@ struct WorkbenchPage : WorkbenchPageT<WorkbenchPage> {
 };
 
 }
-
-BASIC_FACTORY(WorkbenchPage)
