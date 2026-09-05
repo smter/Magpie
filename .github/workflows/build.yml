@@ -56,9 +56,10 @@ jobs:
           $gen = "obj\x64\Release\$proj\Generated Files"
           Write-Host "===== DIR $gen ====="
           Get-ChildItem $gen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name
-          foreach ($f in @("WorkbenchPage.g.h", "RootPage.g.h", "App.g.h", "WorkbenchPage.xaml.g.h", "RootPage.xaml.g.h")) {
+          if (Test-Path (Join-Path $gen "sources")) { Write-Host "===== DIR $gen/sources ====="; Get-ChildItem (Join-Path $gen "sources") -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name }
+          foreach ($f in @("WorkbenchPage.g.h", "RootPage.g.h", "App.g.h", "App.xaml.g.h", "WorkbenchPage.xaml.g.h", "RootPage.xaml.g.h")) {
             $p = Join-Path $gen $f
-            if (Test-Path $p) { Write-Host "===== $proj/$f ====="; Get-Content $p -TotalCount 40 }
+            if (Test-Path $p) { Write-Host "===== $proj/$f ====="; Get-Content $p }
           }
           $rsp = "obj\x64\Release\$proj\$proj.vcxproj.cppwinrt_comp.rsp"
           if (Test-Path $rsp) { Write-Host "===== $proj cppwinrt_comp.rsp ====="; Get-Content $rsp }

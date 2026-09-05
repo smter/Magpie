@@ -1,4 +1,5 @@
 namespace MagpieVideo {
+	[default_interface]
 	runtimeclass WorkbenchPage : Windows.UI.Xaml.Controls.Page {
 	}
 }
